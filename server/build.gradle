@@ -1,0 +1,52 @@
+plugins {
+    id 'org.openapi.generator' version '5.4.0'
+
+    id "org.jetbrains.kotlin.plugin.jpa" version "${kotlinVersion}"
+    id "org.jetbrains.kotlin.plugin.spring" version "${kotlinVersion}"
+    id "org.springframework.boot" version "2.6.3"
+    id "io.spring.dependency-management" version "1.0.11.RELEASE"
+}
+
+dependencies {
+    implementation "org.springframework.boot:spring-boot-starter-web"
+    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml"
+    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-xml"
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin"
+
+    // https://mvnrepository.com/artifact/javax.validation/validation-api
+    implementation 'javax.validation:validation-api:2.0.1.Final'
+    implementation "org.hibernate:hibernate-validator:6.0.19.Final"
+
+    testImplementation "org.jetbrains.kotlin:kotlin-test-junit5"
+    testImplementation("org.springframework.boot:spring-boot-starter-test") {
+        exclude module: "junit"
+    }
+    kapt("org.springframework.boot:spring-boot-configuration-processor")
+}
+
+def openApiGenerateDir = layout.buildDirectory.dir('generated')
+
+openApiGenerate {
+    generatorName = 'kotlin-spring'
+    packageName = "${project.group}".toString()
+    inputSpec = "${rootDir}/spec/${openAPISchema}.yaml".toString()
+    outputDir = openApiGenerateDir.get().asFile.toString()
+    configOptions = [
+        basePackage  : "${project.group}".toString(),
+        interfaceOnly: "true",
+    ]
+}
+
+compileKotlin.dependsOn tasks.openApiGenerate
+
+sourceSets {
+    main {
+        kotlin {
+            srcDir "${files(openApiGenerateDir).builtBy(tasks.openApiGenerate).asPath}/src/main/kotlin"
+        }
+    }
+}
+
+bootRun {
+    systemProperty "kubernetes.cluster", "kind-${kubernetesKindClusterName}"
+}

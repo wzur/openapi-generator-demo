@@ -1,0 +1,125 @@
+openapi: "3.0.3"
+info:
+  version: 1.0.0
+  title: Automation Server
+servers:
+  - url: http://localhost:8080/v1
+paths:
+  /pods:
+    get:
+      summary: List all managed Kubernetes pods
+      description: Returns the list of managed Kubernetes pods
+      operationId: getPods
+      tags:
+        - Pods
+      responses:
+        '200':
+          description: List of all managed Kubernetes pods
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": '#/components/schemas/Pod'
+    post:
+      summary: Create a new managed Kubernetes pod
+      description: Creates and returns information about newly created managed Kubernetes pod
+      operationId: createPod
+      tags:
+        - Pods
+      responses:
+        '201':
+          description: Newly created managed Kubernetes pod
+          content:
+            application/json:
+              schema:
+                "$ref": '#/components/schemas/Pod'
+      requestBody:
+        "$ref": "#/components/requestBodies/Pod"
+  '/pods/{name}':
+    get:
+      summary: Managed Kubernetes pod
+      description: Get a managed Kubernetes pod
+      operationId: getPod
+      tags:
+        - Pods
+      parameters:
+        - name: name
+          schema:
+            type: string
+          required: true
+          in: path
+      responses:
+        '200':
+          description: A managed Kubernetes pod
+          content:
+            application/json:
+              schema:
+                "$ref" : "#/components/schemas/Pod"
+        '404':
+          description: No such managed Kubernetes pod
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/AutomationError"
+    delete:
+      summary: Destroy managed Kubernetes pod
+      description: Destroy a managed Kubernetes pod
+      operationId: destroyPod
+      tags:
+        - Pods
+      parameters:
+        - name: name
+          schema:
+            type: string
+          required: true
+          in: path
+      responses:
+        '200':
+          description: Destroyed managed Kubernetes pod
+          content:
+            application/json:
+              schema:
+                "$ref" : "#/components/schemas/Pod"
+        '404':
+          description: No such managed Kubernetes pod
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/AutomationError"
+components:
+  schemas:
+    Pod:
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Name of managed Kubernetes pod
+          pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$'
+        waitTime:
+          type: integer
+          minimum: 1
+          maximum: 250
+          default: 50
+        status:
+          type: string
+    AutomationError:
+      required:
+        - msgs
+        - errorCode
+      properties:
+        msgs:
+          type: array
+          items:
+            type: string
+        errorCode:
+          type: integer
+  requestBodies:
+    Pod:
+      description: request to create a new managed Kubernetes pod
+      required: true
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/Pod"

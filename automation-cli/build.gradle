@@ -1,0 +1,19 @@
+plugins {
+    id 'application'
+}
+
+dependencies {
+    implementation "com.squareup.moshi:moshi:${moshiVersion}"
+    kapt "com.squareup.moshi:moshi-kotlin-codegen:${moshiVersion}"
+
+    implementation project(":client")
+
+    // https://mvnrepository.com/artifact/info.picocli/picocli
+    api "info.picocli:picocli:${picocliVersion}" // api "info.picocli:picocli:$picocliVersion"
+
+}
+
+application {
+    mainClass = "${project.group}.cli.AutomationCliKt"
+    applicationName = 'automation-cli'
+}
